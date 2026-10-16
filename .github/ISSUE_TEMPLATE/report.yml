@@ -1,0 +1,59 @@
+name: Report a link source
+description: A site that builds or sells spam backlinks, with evidence anyone can check.
+title: "Report: "
+labels: ["report"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        One site per report. The entry needs evidence anyone can see on the public web: what the site's own pages
+        say, or what it shares with sites already listed (a page template, a redirect, a checkout link, an analytics
+        account). A tool's score (spam score, a "SPAM" mark) is not evidence by itself.
+  - type: input
+    id: domain
+    attributes:
+      label: Domain
+      placeholder: example.com
+    validations:
+      required: true
+  - type: dropdown
+    id: category
+    attributes:
+      label: Category
+      options:
+        - link-network (one operator's sites - a shared template, redirect, checkout link or account)
+        - link-seller (selling links is its business - PBN, DR and DA packages)
+        - hacked (a page injected into a hacked site)
+        - shortener (a URL shortener used for bulk backlinks)
+    validations:
+      required: true
+  - type: input
+    id: evidence-url
+    attributes:
+      label: Evidence URL
+      description: A public page where the evidence can be seen.
+      placeholder: https://example.com/pricing
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: What the page shows
+      description: Quote the words, in quotes, or say what it shares with listed sites.
+      placeholder: '"Dofollow backlinks DR 50+ for $29" on the pricing page'
+    validations:
+      required: true
+  - type: textarea
+    id: context
+    attributes:
+      label: How you came across it
+      description: Optional. Other sites of the same network help.
+  - type: checkboxes
+    id: confirm
+    attributes:
+      label: Before you send
+      options:
+        - label: The evidence can be seen by anyone at the URL above.
+          required: true
+        - label: This is not a report against a competitor I want to harm.
+          required: true

@@ -1,0 +1,24 @@
+name: Dispute an entry
+description: An entry is wrong or out of date (for example, the site is yours and has changed).
+title: "Dispute: "
+labels: ["dispute"]
+body:
+  - type: input
+    id: domain
+    attributes:
+      label: Domain
+      placeholder: example.com
+    validations:
+      required: true
+  - type: textarea
+    id: why
+    attributes:
+      label: Why the entry is wrong
+      description: What changed, or what the evidence misses. Links help.
+    validations:
+      required: true
+  - type: input
+    id: contact
+    attributes:
+      label: Contact
+      description: Optional, if you would like a reply outside GitHub.

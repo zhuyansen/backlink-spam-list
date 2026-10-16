@@ -1,0 +1,4 @@
+__pycache__/
+.pytest_cache/
+comment.md
+.DS_Store
