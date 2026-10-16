@@ -36,43 +36,52 @@ def quoted(evidence: str, text: str) -> bool:
     return any(norm(p) in norm(text) for p in parts if p.strip())
 
 
-def vet_free(domain: str) -> dict:
-    """backlink-guard's free check (its own pages only); {} when it is not installed or fails."""
+def vet_free(domains: list[str]) -> list[dict]:
+    """backlink-guard's free check of the sites in one run: their own pages, and the template or accounts they
+    share, which only shows when they are checked together. [] when it is not installed or fails."""
     try:
-        out = subprocess.run([sys.executable, "-m", "backlink_guard", "vet", domain, "--free", "--json"],
-                             capture_output=True, text=True, timeout=180)
-        return json.loads(out.stdout)["rows"][0]
+        out = subprocess.run([sys.executable, "-m", "backlink_guard", "vet", *domains, "--free", "--json",
+                              "--limit", str(len(domains))], capture_output=True, text=True, timeout=600)
+        return json.loads(out.stdout)["rows"]
     except Exception:  # noqa: BLE001
-        return {}
+        return []
 
 
-def comment(form: dict[str, str], listed: dict | None, row: dict, evidence_seen: bool | None) -> str:
+def site_line(domain: str, entry: dict | None, row: dict | None) -> str:
+    said = []
+    if entry:
+        said.append(f"already in the list as **{entry['category']}** ({entry['status']}, since {entry['first_listed']})")
+    if row:
+        found = [f"{f['flag']} ({f['evidence'][:80]})" for f in row.get("flags", []) if f.get("level") != "note"]
+        said.append(f"title \"{row.get('title', '')[:80]}\"; " + ("; ".join(found) if found else "nothing found on its pages"))
+    return f"- `{domain}`: " + ("; ".join(said) or "could not be checked") + "."
+
+
+def comment(form: dict[str, str], listed: dict[str, dict], rows: list[dict], evidence_seen: bool | None) -> str:
     domain = lib.domain_of(form.get("domain", ""))
     if not domain:
         return "This does not look like a domain. Please edit the report with the bare domain, such as `example.com`."
-    lines = [f"Checked `{domain}`:"]
-    if listed:
-        lines.append(f"- Already in the list as **{listed['category']}** ({listed['status']}, since {listed['first_listed']}).")
-    if row:
-        found = [f"{f['flag']} ({f['evidence'][:80]})" for f in row.get("flags", []) if f.get("level") != "note"]
-        lines.append(f"- Its own pages: title \"{row.get('title', '')[:80]}\"; " + ("; ".join(found) if found else "nothing found on them") + ".")
+    members, by_site = lib.members_of(form, domain), {r.get("domain"): r for r in rows}
+    lines = [f"Checked `{domain}`" + (f" and {len(members)} other site(s) of the same network, in one run:" if members else ":")]
+    lines += [site_line(d, listed.get(d), by_site.get(d)) for d in [domain, *members]]
     if evidence_seen is not None:
         lines.append("- The quoted evidence " + ("**is** on the evidence page." if evidence_seen else
                      "was **not** found on the evidence page (it may be drawn by a script; a maintainer looks by hand)."))
     category = form.get("category", "").split(" ")[0]
-    lines += ["", f"A maintainer can reply `/approve {category if category in lib.CATEGORIES else '<category>'}` to add it, "
-              "or `/reject <reason>`."]
+    lines += ["", f"A maintainer can reply `/approve {category if category in lib.CATEGORIES else '<category>'}` to add "
+              + ("them all" if members else "it") + ", or `/reject <reason>`."]
     return "\n".join(lines)
 
 
 def main() -> int:
     form = lib.form_fields(os.environ.get("ISSUE_BODY", ""))
     domain = lib.domain_of(form.get("domain", ""))
-    listed = next((r for r in lib.read() if r["domain"] == domain), None) if domain else None
+    sites = [domain, *lib.members_of(form, domain)] if domain else []
+    listed = {r["domain"]: r for r in lib.read() if r["domain"] in sites}
     url = form.get("evidence url", "")
     text = page_text(url) if url.startswith(("http://", "https://")) else ""
     seen = None if not text or text.startswith("__failed__") else quoted(form.get("what the page shows", ""), text)
-    Path(os.environ.get("OUT", "comment.md")).write_text(comment(form, listed, vet_free(domain) if domain else {}, seen))
+    Path(os.environ.get("OUT", "comment.md")).write_text(comment(form, listed, vet_free(sites) if sites else [], seen))
     return 0
 
 

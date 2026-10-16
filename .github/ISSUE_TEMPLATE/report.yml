@@ -6,9 +6,10 @@ body:
   - type: markdown
     attributes:
       value: |
-        One site per report. The entry needs evidence anyone can see on the public web: what the site's own pages
-        say, or what it shares with sites already listed (a page template, a redirect, a checkout link, an analytics
-        account). A tool's score (spam score, a "SPAM" mark) is not evidence by itself.
+        One site per report, or one network: its other sites go in the field below, and they are checked and
+        listed together. The entry needs evidence anyone can see on the public web: what the site's own pages say,
+        or what it shares with other sites (a page template, a redirect, a checkout link, an analytics account).
+        A tool's score (spam score, a "SPAM" mark) is not evidence by itself.
   - type: input
     id: domain
     attributes:
@@ -16,6 +17,14 @@ body:
       placeholder: example.com
     validations:
       required: true
+  - type: textarea
+    id: members
+    attributes:
+      label: Other sites of the same network
+      description: Optional. One domain per line, up to 30, sharing what the evidence below names. Checked and listed together.
+      placeholder: |
+        second-site.example
+        third-site.example
   - type: dropdown
     id: category
     attributes:

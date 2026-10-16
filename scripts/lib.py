@@ -17,6 +17,7 @@ CATEGORIES = {
 }
 STATUSES = ("listed", "disputed", "removed")
 DOMAIN = re.compile(r"^(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+(?:[a-z]{2,24}|xn--[a-z0-9-]{2,59})$")
+MEMBERS_MAX = 30                 # other sites of one network a report can add
 
 
 def domain_of(text: str) -> str:
@@ -73,3 +74,13 @@ def form_fields(body: str) -> dict[str, str]:
         value = m.group(2).strip()
         fields[m.group(1).strip().lower()] = "" if value == "_No response_" else value
     return fields
+
+
+def members_of(form: dict[str, str], main: str) -> list[str]:
+    """The other sites of the same network a report names, as bare domains: no repeats, not the reported one."""
+    out: list[str] = []
+    for word in re.split(r"[\s,]+", form.get("other sites of the same network", "")):
+        domain = domain_of(word)
+        if domain and domain != main and domain not in out:
+            out.append(domain)
+    return out[:MEMBERS_MAX]

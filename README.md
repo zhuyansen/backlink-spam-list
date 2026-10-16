@@ -39,6 +39,8 @@ What does not go in: a directory that sells followed listings but is otherwise a
 
 [Open a report](../../issues/new?template=report.yml): the domain, the category, a URL and what it shows. A check runs at once and comments what it saw: the site's own pages read by backlink-guard, and whether the words you quoted are on the evidence page. A maintainer then replies `/approve <category>` to add it, or `/reject <reason>`.
 
+A network goes in one report: put its other sites, one per line, in "Other sites of the same network". They are checked in the same run, so a page template or an analytics account they share shows in the check, and `/approve` lists them together as one family. backlink-guard (0.6 and later) fills this form in for you when a check finds one operator's sites that the list lacks; nothing is sent until you submit it.
+
 ## Dispute an entry
 
 [Open a dispute](../../issues/new?template=dispute.yml) if an entry is wrong or out of date, for example when a domain has changed hands. A maintainer replies `/remove` or `/keep`. A removed entry keeps its line with status `removed` and the issue that removed it, so the history stays.

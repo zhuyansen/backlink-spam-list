@@ -88,8 +88,34 @@ def test_only_maintainers_are_obeyed(monkeypatch, tmp_path):
 
 
 def test_the_check_says_what_it_saw():
-    text = check_report.comment(lib.form_fields(REPORT), None,
-                                {"title": "Rank Shop", "flags": [{"flag": "paid_follow", "level": "caution", "evidence": "$29 dofollow"}]}, True)
+    row = {"domain": "rank-shop.example", "title": "Rank Shop",
+           "flags": [{"flag": "paid_follow", "level": "caution", "evidence": "$29 dofollow"}]}
+    text = check_report.comment(lib.form_fields(REPORT), {}, [row], True)
     assert "`rank-shop.example`" in text and "paid_follow" in text and "**is** on the evidence page" in text
-    assert "`/approve link-seller`" in text
+    assert "`/approve link-seller` to add it" in text
     assert check_report.quoted('"DR 50+ dofollow backlinks for $29"', "Buy now: DR 50+ dofollow backlinks for $29 today")
+
+
+NETWORK = REPORT.replace("### Category", "### Other sites of the same network\n\nsecond.example\nhttps://www.Third.example/about\n"
+                                         "second.example, rank-shop.example\n\n### Category")
+
+
+def test_a_network_is_reported_checked_and_listed_together():
+    form = lib.form_fields(NETWORK)
+    assert lib.members_of(form, "rank-shop.example") == ["second.example", "third.example"]       # no repeats, not the reported one
+    known = {"domain": "third.example", "category": "link-seller", "family": "", "evidence": "x", "evidence_url": "https://third.example/",
+             "first_listed": "2026-10-01", "last_checked": "2026-10-01", "status": "listed", "source": "seed"}
+    rows = [dict(known)]
+    reply, changed = apply_command.apply("approve", "link-network", form, ["report"], "30", "2026-10-17", rows)
+    by = {r["domain"]: r for r in rows}
+    assert changed and set(by) == {"rank-shop.example", "second.example", "third.example"}
+    assert lib.problems(sorted(rows, key=lambda r: r["domain"])) == []                            # as main() checks before writing
+    assert by["second.example"]["family"] == "rank-shop.example" and by["second.example"]["evidence_url"] == "https://second.example/"
+    assert by["rank-shop.example"]["evidence_url"] == "https://rank-shop.example/pricing"
+    assert by["third.example"]["category"] == "link-network" and by["third.example"]["last_checked"] == "2026-10-17"
+    assert reply.startswith("Added 2 as **link-network**, the `rank-shop.example` family") and "1 already listed" in reply
+    seen = [{"domain": "second.example", "title": "Second | SEO", "flags": [{"flag": "same_template", "level": "caution",
+                                                                              "evidence": "3 sites titled \"{site} | seo\""}]}]
+    text = check_report.comment(form, {"third.example": known}, seen, None)
+    assert "and 2 other site(s) of the same network, in one run:" in text and "same_template" in text
+    assert "- `third.example`: already in the list as **link-seller**" in text and "to add them all" in text
