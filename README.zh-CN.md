@@ -51,7 +51,7 @@
 curl -s https://raw.githubusercontent.com/zhuyansen/backlink-spam-list/main/list.csv | grep ',listed,'
 ```
 
-[backlink-guard](https://github.com/zhuyansen/backlink-guard) 每次 `vet` 都会读这份名单：已收录的站直接判 avoid，并附上条目里的证据。
+[backlink-guard](https://github.com/zhuyansen/backlink-guard) 从 0.5 版起，每次 `vet` 都会读这份名单：已收录的站直接判 avoid，并附上条目里的证据。
 
 ## 第一批是怎么找到的
 

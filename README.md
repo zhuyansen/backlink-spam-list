@@ -51,7 +51,7 @@ What does not go in: a directory that sells followed listings but is otherwise a
 curl -s https://raw.githubusercontent.com/zhuyansen/backlink-spam-list/main/list.csv | grep ',listed,'
 ```
 
-[backlink-guard](https://github.com/zhuyansen/backlink-guard) reads it on every `vet`: a listed site is marked avoid, with the entry's evidence.
+[backlink-guard](https://github.com/zhuyansen/backlink-guard) reads it on every `vet` from version 0.5: a listed site is marked avoid, with the entry's evidence.
 
 ## How the first entries were found
 
